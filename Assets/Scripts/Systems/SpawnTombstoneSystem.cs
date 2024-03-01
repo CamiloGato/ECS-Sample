@@ -2,6 +2,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Systems
@@ -23,7 +24,8 @@ namespace Systems
             var graveyard = SystemAPI.GetAspect<GraveyardAspect>(graveyardEntity);
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
-            
+            var spawnPoints = new NativeList<float3>(Allocator.Temp);
+            var tombstoneOffset = new float3(0f, -2f, 1f);
             
             for (int i = 0; i < graveyard.NumberTombstonesToSpawn; i++)
             {
@@ -35,8 +37,11 @@ namespace Systems
                     Rotation = newTombstoneTransform.Rotation,
                     Scale = newTombstoneTransform.Scale
                 });
+                var newZombieSpawnPoint = newTombstoneTransform.Position + tombstoneOffset;
+                spawnPoints.Add(newZombieSpawnPoint);
             }
-            
+
+            // graveyard.ZombieSpawnPoints = spawnPoints.ToArray(Allocator.Persistent);
             ecb.Playback(state.EntityManager);
             
         }
